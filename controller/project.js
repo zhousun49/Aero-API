@@ -30,11 +30,13 @@ exports.project_one = (req, res) => {
 }
 
 exports.project_post = (req, res) => {
+    console.log('project posting route')
+    console.log(req.user)
     const info = req.body;
     console.log('All requests: ', info)
     const project = new Project({
         name: info.name,
-        owner: info.owner,
+        owner: req.user._id,
         description: info.description 
       })
     project.save(function (err, post) {
@@ -69,9 +71,16 @@ exports.project_remove = (req, res) => {
         if (err) return res.status(500).send(err);
         // We'll create a simple object to send back with a message and the id of the document that was removed
         // You can really do this however you want, though.
-        return res.status(200).json({
-            message: "Project successfully deleted",
-            id: id
-        });
+        if (req.user._id == project.owner) {
+            return res.status(200).json({
+                message: "Project successfully deleted",
+                id: id,
+                project: project
+            });
+        } else {
+            res.status(401).json({
+                message: "Unable to delete. You don't own this project"
+            })
+        }
     });
 }

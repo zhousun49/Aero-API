@@ -5,9 +5,9 @@ const ProjectSchema = new mongoose.Schema({
     description: {type: String, required: true},
     date: { type: Date, default:Date.now() },
     views: {type: Number, default: 0},
-    owner: {type: String, required: true},
-    applicants: [String],
-    members: [String],
+    owner: {type: mongoose.Types.ObjectId, required:true},
+    applicants: [mongoose.Types.ObjectId],
+    members: [mongoose.Types.ObjectId],
     interests: {type: Number, default: 0},
 })
 
