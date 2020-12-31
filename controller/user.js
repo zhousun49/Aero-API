@@ -1,9 +1,10 @@
 const User = require('../model/user')
+const Token = require('../model/refreshtoken')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
 exports.getUserinfo = (req, res) => {
-    console.log(req.user)
+    console.log("Retrieving User Info Route")
     res.status(201).json({
         message: "User Info successfully retrieved",
         username: req.user.name,
@@ -11,7 +12,24 @@ exports.getUserinfo = (req, res) => {
     })
 }
 
+exports.logout = (req, res) => {
+    console.log('Log out Route')
+    const token =  req.body.token
+    Token.findOneAndRemove({token: token}, (err, token) => {
+        if (err) return res.status(401).json({
+            message: 'Error occured. Log out failed',
+            error: err
+        })
+        console.log('second item')
+        console.log(token)
+        res.status(204).json({
+            message:"User successfully logged out"
+        })
+    })
+}
+
 exports.signup = async (req, res) => {
+    console.log('Sign up Route')
     try{
         const info = req.body
         const hashedpassowrd = await bcrypt.hash(req.body.password, 10)
@@ -35,20 +53,31 @@ exports.signup = async (req, res) => {
     }
 }
 
-exports.login = async (req, res) => {
+exports.login = (req, res) => {
+    console.log('Log in Route')
     User.findOne({email: req.body.email}, (err, user) => {
         if (err || user == null) {
             return res.status(400).json({
                 message: "User not found"
             })
         }
-        // console.log(user.toJSON())
         try{
-            if (bcrypt.compare(req.body.password, user.password)){
-                const accessToken = jwt.sign(user.toJSON(), process.env.ACCESS_TOKEN_SECRET, {expiresIn: 604800})
-                console.log('token',accessToken)
+            // const user = user.toJSON()
+            // console.log(user.toJSON())
+            const comparison =bcrypt.compareSync(req.body.password, user.password)
+            // console.log(comparison)
+            if (comparison){
+                const accessToken = generateAccessToken(user.toJSON())
+                // console.log(accessToken)
+                const refreshToken = jwt.sign(user.toJSON(), process.env.REFRESH_TOKEN_SECRET)
+                const token = new Token({ token: refreshToken})
+                // console.log('token', token)
+                token.save()
+                // console.log(token)
+                // Save refresh Tokens
                 res.status(201).json({
-                    token: accessToken,
+                    accessToken: accessToken,
+                    refreshToken: refreshToken,
                     message: "Successfully logged in"
                 })
             }else {
@@ -64,3 +93,6 @@ exports.login = async (req, res) => {
     })
 }
 
+function generateAccessToken(user) {
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '10m'})
+}
