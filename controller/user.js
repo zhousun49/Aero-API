@@ -8,7 +8,10 @@ exports.getUserinfo = (req, res) => {
     res.status(201).json({
         message: "User Info successfully retrieved",
         username: req.user.name,
-        useremail: req.user.email
+        useremail: req.user.email,
+        owned_projects: req.user.owned_projects,
+        applied_projects: req.user.applied_projects,
+        project_member: req.user.project_member
     })
 }
 
@@ -33,14 +36,14 @@ exports.signup = async (req, res) => {
     try{
         const info = req.body
         const hashedpassowrd = await bcrypt.hash(req.body.password, 10)
-        // console.log('hashed pw: ', hashedpassowrd)
+        console.log('hashed pw: ', hashedpassowrd)
         const user = new User({
             name: info.name,
             email: info.email,
             password: hashedpassowrd 
           })
         user.save(function (err, post) {
-            if (err) { return next(err) }
+            if (err) { return res.status(500).json({error: err}) }
             res.status(201).json({
                 user:user,
                 message: "User successfully created"

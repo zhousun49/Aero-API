@@ -1,5 +1,6 @@
 const Project = require('../model/project')
 
+
 exports.projects_all = (req, res) => {
     Project.find()
         .then(result => [
@@ -29,9 +30,8 @@ exports.project_one = (req, res) => {
         })
 }
 
-exports.project_post = (req, res) => {
+exports.project_post = (req, res, next) => {
     console.log('project posting route')
-    console.log(req.user)
     const info = req.body;
     console.log('All requests: ', info)
     const project = new Project({
@@ -42,29 +42,149 @@ exports.project_post = (req, res) => {
     project.save(function (err, post) {
         if (err) { return next(err) }
         res.status(201).json({
-            project:project,
+            project:post,
             message: "project successfully posted"
         })
-      })
+        req.project = post
+        req.option = "post"
+        next()
+    })
 }
 
-exports.project_update = (req, res) => {
+exports.project_apply = (req, res, next) => {
     const id = req.params.project_id
-    Project.findByIdAndUpdate(
+    console.log('Project application route')
+    // console.log('user id: ', req.user._id)
+    Project.findById(
         id, 
-        req.body,
         (err, project) => {
         // Handle any possible database errors
             if (err) return res.status(500).send(err);
-            return res.status(201).json({
-                project: project,
-                message: "project suessfully updated"
-            });
+            // const userid = req.user._id
+            // console.log('User id: ', userid)
+            // console.log('Applicants id: ', project.applicants)
+            if (project.applicants.includes(req.user._id)) {
+                return res.status(500).json({
+                    message: "You have already applied for this project. Wait for Owner approval"
+                })
+            } else {
+                project.applicants.push(req.user._id);
+                project.save(function (err, post) {
+                    if (err) { return next(err) }
+                    res.status(201).json({
+                        project:post,
+                        message: "project successfully applied"
+                    })
+                  })
+                req.project = post
+                req.option = "apply"
+                next()
+            }
         }
     )
 }
 
-exports.project_remove = (req, res) => {
+exports.project_deapply = (req, res,next) => {
+    const id = req.params.project_id
+    console.log('Project application withdrawn route')
+    Project.findById(
+        id, 
+        (err, project) => {
+        // Handle any possible database errors
+            if (err) return res.status(500).send(err);
+            if (project.applicants.includes(req.user._id) == false) {
+                return res.status(500).json({
+                    message: "You have not applied for this project. Withdrawn failed"
+                })
+            } else {
+                project.applicants.pull(req.user._id);
+                project.save(function (err, post) {
+                    if (err) { return next(err) }
+                    res.status(201).json({
+                        project:post,
+                        message: "project application successfully withdrawn"
+                    })
+                  })
+                req.project = post
+                req.option = "deapply"
+                next()
+            }
+        }
+    )
+}
+
+exports.project_member_approve = (req, res,next) => {
+    const id = req.params.project_id
+    console.log('Project member application approval route')
+    Project.findById(
+        id, 
+        (err, project) => {
+        // Handle any possible database errors
+            if (err) return res.status(500).send(err);
+            if (project.owner != req.user._id) {
+                return res.status(500).json({
+                    message: "You don't own this project. Can't approve members"
+                })
+            } else {
+                // console.log('Request body: ', req.body.userId)
+                if (project.members.includes(req.body.userId)) {
+                    return res.status(500).json({
+                        message: "You have already approved this member."
+                    })
+                } else {
+                    project.members.push(req.body.userId);
+                    project.save(function (err, post) {
+                        if (err) { return next(err) }
+                        res.status(201).json({
+                            project:post,
+                            message: "project member approved"
+                        })
+                      })
+                    req.project = post
+                    req.option = "approve"
+                    next()
+                }
+            }
+        }
+    )
+}
+
+exports.project_member_delete = (req, res) => {
+    const id = req.params.project_id
+    console.log('Project member deletion route')
+    Project.findById(
+        id, 
+        (err, project) => {
+        // Handle any possible database errors
+            if (err) return res.status(500).send(err);
+            if (project.owner != req.user._id) {
+                return res.status(500).json({
+                    message: "You don't own this project. Can't delete members"
+                })
+            } else {
+                if (project.members.includes(req.body.userId) == false) {
+                    return res.status(500).json({
+                        message: "Applicant is not yet a member."
+                    })
+                } else {
+                    project.members.pull(req.body.userId);
+                    project.save(function (err, post) {
+                        if (err) { return next(err) }
+                        res.status(201).json({
+                            project: post,
+                            message: "project member deleted"
+                        })
+                      })
+                    req.project = post
+                    req.option = "delete"
+                    next()
+                }
+            }
+        }
+    )
+}
+
+exports.project_remove = (req, res,next) => {
     const id = req.params.project_id
     Project.findByIdAndRemove(id, (err, project) => {
         // As always, handle any potential errors:
@@ -72,11 +192,14 @@ exports.project_remove = (req, res) => {
         // We'll create a simple object to send back with a message and the id of the document that was removed
         // You can really do this however you want, though.
         if (req.user._id == project.owner) {
-            return res.status(200).json({
+            res.status(200).json({
                 message: "Project successfully deleted",
                 id: id,
                 project: project
-            });
+            })
+            req.project = project
+            req.option = "remove"
+            next()
         } else {
             res.status(401).json({
                 message: "Unable to delete. You don't own this project"
