@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken')
 
 exports.getUserinfo = (req, res) => {
     console.log("Retrieving User Info Route")
+    console.log(req.user)
     res.status(201).json({
         message: "User Info successfully retrieved",
         username: req.user.name,
@@ -36,7 +37,7 @@ exports.signup = async (req, res) => {
     try{
         const info = req.body
         const hashedpassowrd = await bcrypt.hash(req.body.password, 10)
-        console.log('hashed pw: ', hashedpassowrd)
+        // console.log('hashed pw: ', hashedpassowrd)
         const user = new User({
             name: info.name,
             email: info.email,

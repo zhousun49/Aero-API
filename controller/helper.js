@@ -3,7 +3,8 @@ const User = require('../model/user')
 
 exports.authenticateToken = (req,res,next) => {
     console.log('authenticate token...')
-    const authHeader = req.headers['authorization']
+    const authHeader = req.headers.authorization
+    // console.log(authHeader)
     const token = authHeader && authHeader.split(' ')[1]
     // console.log('Token: ', token)
     if (token == null) return res.status(401).json({message: 'no user found'})
@@ -35,6 +36,8 @@ exports.add_to_user = (req,res) => {
             user.save()
         }else if (req.option == "approve"){
             user.project_member.push(req.project._id)
+            console.log('user getting approved')
+            console.log(user)
             user.save()
         }else if (req.option == "delete"){
             user.project_member.pull(req.project._id)

@@ -54,7 +54,8 @@ exports.project_post = (req, res, next) => {
 exports.project_apply = (req, res, next) => {
     const id = req.params.project_id
     console.log('Project application route')
-    // console.log('user id: ', req.user._id)
+    console.log('user id: ', req.user._id)
+    console.log('Project id: ', id)
     Project.findById(
         id, 
         (err, project) => {
@@ -72,11 +73,11 @@ exports.project_apply = (req, res, next) => {
                 project.save(function (err, post) {
                     if (err) { return next(err) }
                     res.status(201).json({
-                        project:post,
+                        project:project,
                         message: "project successfully applied"
                     })
                   })
-                req.project = post
+                req.project = project
                 req.option = "apply"
                 next()
             }
@@ -101,11 +102,11 @@ exports.project_deapply = (req, res,next) => {
                 project.save(function (err, post) {
                     if (err) { return next(err) }
                     res.status(201).json({
-                        project:post,
+                        project:project,
                         message: "project application successfully withdrawn"
                     })
                   })
-                req.project = post
+                req.project = project
                 req.option = "deapply"
                 next()
             }
@@ -133,14 +134,14 @@ exports.project_member_approve = (req, res,next) => {
                     })
                 } else {
                     project.members.push(req.body.userId);
-                    project.save(function (err, post) {
+                    project.save(function (err) {
                         if (err) { return next(err) }
                         res.status(201).json({
-                            project:post,
+                            project:project,
                             message: "project member approved"
                         })
                       })
-                    req.project = post
+                    req.project = project
                     req.option = "approve"
                     next()
                 }
@@ -149,7 +150,7 @@ exports.project_member_approve = (req, res,next) => {
     )
 }
 
-exports.project_member_delete = (req, res) => {
+exports.project_member_delete = (req, res, next) => {
     const id = req.params.project_id
     console.log('Project member deletion route')
     Project.findById(
@@ -168,14 +169,14 @@ exports.project_member_delete = (req, res) => {
                     })
                 } else {
                     project.members.pull(req.body.userId);
-                    project.save(function (err, post) {
+                    project.save(function (err) {
                         if (err) { return next(err) }
                         res.status(201).json({
-                            project: post,
+                            project: project,
                             message: "project member deleted"
                         })
                       })
-                    req.project = post
+                    req.project = project
                     req.option = "delete"
                     next()
                 }
