@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken')
 
 exports.getUserinfo = (req, res) => {
     console.log("Retrieving User Info Route")
-    console.log(req.user)
+    // console.log(req.user)
     res.status(201).json({
         message: "User Info successfully retrieved",
         username: req.user.name,
@@ -18,14 +18,14 @@ exports.getUserinfo = (req, res) => {
 
 exports.logout = (req, res) => {
     console.log('Log out Route')
-    const token =  req.body.token
-    Token.findOneAndRemove({token: token}, (err, token) => {
+    const authHeader = req.headers.authorization
+    const token = authHeader && authHeader.split(' ')[1]
+    // console.log("token: ", token)
+    Token.findOneAndRemove({token: token}, (err) => {
         if (err) return res.status(401).json({
             message: 'Error occured. Log out failed',
             error: err
         })
-        console.log('second item')
-        console.log(token)
         res.status(204).json({
             message:"User successfully logged out"
         })

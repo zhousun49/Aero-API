@@ -9,6 +9,6 @@ router.post('/user/login', UserController.login)
 
 router.get('/user/loggedin', helper.authenticateToken, UserController.getUserinfo)
 
-router.delete('/user/logout', UserController.logout)
+router.delete('/user/logout', helper.authenticateToken, UserController.logout)
 
 module.exports = router
