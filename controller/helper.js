@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken')
 const User = require('../model/user')
+const Project = require('../model/project')
 
 exports.authenticateToken = (req,res,next) => {
     console.log('authenticate token...')
@@ -15,6 +16,17 @@ exports.authenticateToken = (req,res,next) => {
             error: err
         })
         req.user = user
+        next()
+    })
+}
+
+exports.pass_project_info = (req, res, next) => {
+    console.log('Passing project info to the next callback')
+    // console.log('Project id: ', req.params.projectId)
+    Project.findById(req.params.projectId, (err, project) => {
+        if(err) return res.status(500).json({ error: err})
+        // console.log('project: ', project)
+        req.project = project
         next()
     })
 }

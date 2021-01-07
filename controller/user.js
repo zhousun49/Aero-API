@@ -21,12 +21,12 @@ exports.logout = (req, res) => {
     const authHeader = req.headers.authorization
     const token = authHeader && authHeader.split(' ')[1]
     // console.log("token: ", token)
-    Token.findOneAndRemove({token: token}, (err) => {
+    Token.findOneAndDelete({token: token}, (err, resu) => {
         if (err) return res.status(401).json({
             message: 'Error occured. Log out failed',
             error: err
         })
-        res.status(204).json({
+        return res.status(201).json({
             message:"User successfully logged out"
         })
     })

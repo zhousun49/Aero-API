@@ -1,10 +1,14 @@
 const express = require('express')
 const router = express.Router()
 const ProjectController = require('../controller/project')
+const UserProjectController = require('../controller/userproject')
 const helper = require('../controller/helper')
 
 router.get('/project', ProjectController.projects_all)
 router.get('/project/:project_id', ProjectController.project_one)
+router.get('/projects', helper.authenticateToken, UserProjectController.projects_owned)
+router.get('/projects/applied', helper.authenticateToken, UserProjectController.projects_applied)
+router.get('/projects/approved', helper.authenticateToken, UserProjectController.projects_member)
 
 router.post('/project',helper.authenticateToken, ProjectController.project_post, helper.add_to_user)
 

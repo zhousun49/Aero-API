@@ -1,6 +1,5 @@
 const Project = require('../model/project')
 
-
 exports.projects_all = (req, res) => {
     Project.find()
         .then(result => [
