@@ -7,6 +7,11 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const ProjectRoute = require('./router/project')
 const UserRoute = require('./router/user')
+const PaymentRoute = require('./router/payment')
+
+const stripePublicKey = process.env.STRIPE_PUBLIC_KEY
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY
+// console.log(stripePublicKey, stripeSecretKey)
 
 mongoose.connect(process.env.MONGO_URI, {
         useNewUrlParser: true,
@@ -22,9 +27,10 @@ mongoose.connect(process.env.MONGO_URI, {
 // Send message for default URL
 app.use(bodyParser.json());
 app.use(cors());
-app.get('/', (req, res) => res.send('Hello World with Express'));
+app.get('/', (req, res) => res.send('Welcome using Aero API beta version'));
 app.use('/api',ProjectRoute)
 app.use('/api',UserRoute)
+app.use('/api',PaymentRoute)
 // Launch app to listen to specified port
 
 const port = process.env.PORT || 5000;
