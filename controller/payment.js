@@ -30,22 +30,19 @@ exports.purchase = (req, res) => {
             total = total + itemJson.price *item.quantity
         })
         console.log('Total Amount: ', total)
-        stripe.checkout.sessions.create({
-            success_url: 'https://example.com/success',
-            cancel_url: 'https://example.com/cancel',
-            payment_method_types: ['card'],
-            line_items: [
-              {price: 'price_H5ggYwtDq4fbrJ', quantity: 2},
-            ],
-            mode: 'payment',
-        }).then(() => {
+        stripe.charges.create({
+            amount: total,
+            currency: 'usd',
+            source: 'tok_amex',
+            description: 'My First Test Charge (created for API docs)',
+          }).then(() => {
             console.log('Charge Successful')
             res.status(200).json({
                 message: "Successfully purchased Items"
             })
         }).catch((err) => {
             console.log('Charge Failed')
-            res.status(500).json({
+            res.status(400).json({
                 message: "Failed to purchase Items",
                 error: err
             })
